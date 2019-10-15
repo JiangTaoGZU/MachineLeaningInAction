@@ -2,6 +2,8 @@ from math import log
 import decisionTreePlot as dtPlot
 from collections import Counter
 
+# ------项目案例1: 海洋生物预测---------
+
 def createDataSet():
     dataSet = [[1, 1, 'yes'],
               [1, 1, 'yes'],
@@ -107,7 +109,6 @@ def createTree(dataSet, labels):
         # print 'myTree', value, myTree
     return myTree
 
-
 def classify(inputTree, featLabels, testVec):
     """classify(给输入的节点，进行分类)
     Args:
@@ -165,8 +166,7 @@ def fishTest():
     print(classify(myTree, labels, [1, 1]))
     #4.获得树的高度
     print("树的高度是:",get_tree_height(myTree))
-    #
-    # 4.画图可视化展现fishTest
+    #5.画图可视化展现fishTest
     dtPlot.createPlot(myTree)
 
 def get_tree_height(tree):
@@ -193,6 +193,8 @@ def get_tree_height(tree):
             max_height = child_tree_height
 
     return max_height + 1
+
+# ------项目案例1: 预测隐形眼镜类型---------
 
 def ContactLensesTest():
     """

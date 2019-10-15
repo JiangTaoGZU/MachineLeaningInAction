@@ -1,8 +1,8 @@
 from numpy import *
-from numpy import *
-import operator
 from os import listdir
 import matplotlib.pyplot as plt
+
+# ------项目案例1: 预测电影类型---------
 
 def createDataSet():
 
@@ -86,10 +86,12 @@ def autoNorm(dataSet):
     normDataSet = (dataSet - minVals) / ranges
     return normDataSet, ranges, minVals
 
+# ------项目案例2: 约会网站匹配---------
+
 def datingClassTest():
-    # 设置测试数据的的一个比例（训练数据集比例=1-hoRatio）
+    #设置测试数据的的一个比例（训练数据集比例=1-hoRatio）
     hoRatio = 0.1  # 测试范围,一部分测试一部分作为样本
-    # 从文件中加载数据
+    #从文件中加载数据
     datingDataMat, datingLabels = file2matrix('data/datingTestSet2.txt')
 
     #分析数据，画散点图
@@ -104,17 +106,17 @@ def datingClassTest():
     m = normMat.shape[0]
     # 设置测试的样本数量， numTestVecs:m表示训练样本的数量
     numTestVecs = int(m * hoRatio)
-    print('测试样本数量=', numTestVecs)
+    print('约会案例的测试样本数量=', numTestVecs)
     errorCount = 0.0
     for i in range(numTestVecs):
         # 对数据测试
         classifierResult = classify0(normMat[i, :], normMat[numTestVecs:m, :], datingLabels[numTestVecs:m], 3)
-        print("分类器的结果是: %d, 正确答案是: %d" % (classifierResult, datingLabels[i]))
+        print("约会案例分类器的结果是: %d, 正确答案是: %d" % (classifierResult, datingLabels[i]))
         if (classifierResult != datingLabels[i]): errorCount += 1.0
-    print("错误率是: %f" % (errorCount / float(numTestVecs)))
-    print('错误数量:',errorCount,)
+    print("约会案例错误率是: %f" % (errorCount / float(numTestVecs)))
+    print('约会案例错误数量:',errorCount,)
 
-
+# ------项目案例3: 手写数字识别---------
 def img2vector(filename):
     """
     将图像数据转换为向量
@@ -159,13 +161,11 @@ def handwritingClassTest():
         classifierResult = classify0(vectorUnderTest, trainingMat, hwLabels, 3)
         print("分类识别数是: %d, 实际数字是: %d" % (classifierResult, classNumStr))
         if (classifierResult != classNumStr): errorCount += 1.0
-    print("\n错误的个数是: %d" % errorCount)
-    print("\n手写识别错误率是: %f" % (errorCount / float(mTest)))
+    print("手写错误的个数是: %d" % errorCount)
+    print("手写案例错误率是: %f" % (errorCount / float(mTest)))
 
 
 if __name__ == '__main__':
     test1()
     datingClassTest()
-
-
     handwritingClassTest()

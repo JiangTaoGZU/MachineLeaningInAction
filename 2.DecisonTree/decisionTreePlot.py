@@ -1,12 +1,3 @@
-#!/usr/bin/python
-# -*- coding: UTF-8 -*-
-
-'''
-Created on Oct 14, 2010
-Update on 2017-02-27
-Decision Tree Source Code for Machine Learning in Action Ch. 3
-Author: Peter Harrington/jiangzhonglian
-'''
 import matplotlib.pyplot as plt
 
 # 定义文本框 和 箭头格式 【 sawtooth 波浪方框, round4 矩形方框 , fc表示字体颜色的深浅 0.1~0.9 依次变浅，没错是变浅】
