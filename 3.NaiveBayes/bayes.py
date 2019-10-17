@@ -105,7 +105,7 @@ def train_naive_bayes(train_mat, train_category):
     p1num_all = 2.0
 
     for i in range(train_doc_num):
-        # 遍历所有的文件，如果是侮辱性文件，就计算此侮辱性文件中出现的侮辱性单词的个数
+        # 遍历所有的文件，如果是侮辱性文档，就计算此侮辱性文件中出现的侮辱性单词的个数
         if train_category[i] == 1:
             p1num += train_mat[i]
             p1num_all += np.sum(train_mat[i])
@@ -132,7 +132,7 @@ def classify_naive_bayes(vec2classify, p0vec, p1vec, p_class1):
     # 计算公式  log(P(F1|C))+log(P(F2|C))+....+log(P(Fn|C))+log(P(C))
     # 使用 NumPy 数组来计算两个向量相乘的结果，这里的相乘是指对应元素相乘，即先将两个向量中的第一个元素相乘，然后将第2个元素相乘，以此类推。
     # 我的理解是：这里的 vec2Classify * p1Vec 的意思就是将每个词与其对应的概率相关联起来
-    # 可以理解为 1.单词在词汇表中的条件下，文件是good 类别的概率 也可以理解为 2.在整个空间下，文件既在词汇表中又是good类别的概率
+    # 可以理解为 1.单词在词汇表中的条件下，文档是非侮辱类别的概率 也可以理解为 2.在整个空间下，文件既在词汇表中又是good类别的概率
     p1 = np.sum(vec2classify * p1vec) + np.log(p_class1)
     p0 = np.sum(vec2classify * p0vec) + np.log(1 - p_class1)
     if p1 > p0:
