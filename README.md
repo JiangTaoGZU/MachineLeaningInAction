@@ -2,5 +2,5 @@
 跑通<机器学习实战>几大算法的代码,做了一些修改,
 ***
 *language:python 
-*ide:pycharm 
+-ide:pycharm 
 *os:ubuntu16
