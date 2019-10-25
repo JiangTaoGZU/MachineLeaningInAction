@@ -5,19 +5,30 @@ import matplotlib.pyplot as plt
 # ------项目案例1: 预测电影类型---------
 
 def createDataSet():
-
     """
-    创建数据集和标签
-     调用方式
-     import kNN
-     group, labels = kNN.createDataSet()
-     """
+    Desc:
+        创建数据集和标签
+    Args:
+        None
+    Returns:
+    """
     group = array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])
     labels = ['爱情片', '爱情片', '动作片', '动作片']
     return group, labels
 
-#Knn分类算法
 def classify0(inX, dataSet, labels, k):
+    """
+    Desc:
+        kNN 的分类函数
+    Args:
+        inX -- 用于分类的输入向量/测试数据
+        dataSet -- 训练数据集的 features
+        labels -- 训练数据集的 labels
+        k -- 选择最近邻的数目
+    Returns:
+        sortedClassCount[0][0] -- 输入向量的预测分类 labels
+    注意：labels元素数目和dataSet行数相同；程序使用欧式距离公式.
+    """
     # 1. 距离计算
     dataSetSize = dataSet.shape[0]
     diffMat = tile(inX, (dataSetSize, 1)) - dataSet      # tile生成和训练样本对应的矩阵，并与训练样本求差
