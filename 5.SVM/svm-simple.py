@@ -34,7 +34,8 @@ def selectJrand(i, m):
     return j
 
 def clipAlpha(aj, H, L):
-    """SMO的辅助函数2,调整aj的值，使aj处于 L<=aj<=H
+    """
+    SMO的辅助函数2,调整aj的值，使aj处于 L<=aj<=H
     Args:
         aj  目标值
         H   最大值
@@ -49,7 +50,8 @@ def clipAlpha(aj, H, L):
     return aj
 
 def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
-    """smoSimple
+    """
+    smoSimple
     Args:
         dataMatIn    数据集
         classLabels  类别标签
@@ -74,20 +76,13 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
     # 没有任何alpha改变的情况下遍历数据的次数
     iter = 0
     while (iter < maxIter):
-        # w = calcWs(alphas, dataMatIn, classLabels)
-        # print("w:", w)
-
         # 记录alpha是否已经进行优化，每次循环时设为0，然后再对整个集合顺序遍历
         alphaPairsChanged = 0
         for i in range(m):
-            # print('alphas=', alphas)
-            # print('labelMat=', labelMat)
-            # print('multiply(alphas, labelMat)=', multiply(alphas, labelMat))
             # 我们预测的类别 y = w^Tx[i]+b; 其中因为 w = Σ(1~n) a[n]*lable[n]*x[n]
             fXi = float(multiply(alphas, labelMat).T*(dataMatrix*dataMatrix[i, :].T)) + b
             # 预测结果与真实结果比对，计算误差Ei
             Ei = fXi - float(labelMat[i])
-
             # 约束条件 (KKT条件是解决最优化问题的时用到的一种方法。我们这里提到的最优化问题通常是指对于给定的某一函数，求其在指定作用域上的全局最小值)
             # 0<=alphas[i]<=C，但由于0和C是边界值，我们无法进行优化，因为需要增加一个alphas和降低一个alphas。
             # 表示发生错误的概率：labelMat[i]*Ei 如果超出了 toler， 才需要优化。至于正负号，我们考虑绝对值就对了。
@@ -98,7 +93,6 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
             yi*f(i) <= 1 and alpha = C (between the boundary)
             '''
             if ((labelMat[i]*Ei < -toler) and (alphas[i] < C)) or ((labelMat[i]*Ei > toler) and (alphas[i] > 0)):
-
                 # 如果满足优化的条件，我们就随机选取非i的一个点，进行优化比较
                 j = selectJrand(i, m)
                 # j的预测结果
