@@ -79,6 +79,15 @@ def majorityCnt(classList):
     return major_label
 
 def createTree(dataSet, labels):
+    """
+    Desc:
+        创建决策树
+    Args:
+        dataSet -- 要创建决策树的训练数据集
+        labels -- 训练数据集中特征对应的含义的labels，不是目标变量
+    Returns:
+        myTree -- 创建完成的决策树
+    """
     classList = [example[-1] for example in dataSet]
     # 如果数据集的最后一列的第一个值出现的次数=整个集合的数量，也就说只有一个类别，就只直接返回结果就行
     # 第一个停止条件：所有的类标签完全相同，则直接返回该类标签。
@@ -110,13 +119,15 @@ def createTree(dataSet, labels):
     return myTree
 
 def classify(inputTree, featLabels, testVec):
-    """classify(给输入的节点，进行分类)
+    """
+    Desc:
+        对新数据进行分类
     Args:
-        inputTree  决策树模型
-        featLabels Feature标签对应的名称
-        testVec    测试输入的数据
+        inputTree  -- 已经训练好的决策树模型
+        featLabels -- Feature标签对应的名称，不是目标变量
+        testVec    -- 测试输入的数据
     Returns:
-        classLabel 分类的结果值，需要映射label才能知道名称
+        classLabel -- 分类的结果值，需要映射label才能知道名称
     """
     # 获取tree的根节点对于的key值,书上这里会报错,必须加list
     firstStr = list(inputTree.keys())[0]
@@ -136,20 +147,23 @@ def classify(inputTree, featLabels, testVec):
     return classLabel
 
 def storeTree(inputTree, filename):
+    """
+    Desc:
+        将之前训练好的决策树模型存储起来，使用 pickle 模块
+    Args:
+        inputTree -- 以前训练好的决策树模型
+        filename -- 要存储的名称
+    Returns:
+        None
+    """
     import pickle
-    # # -------------- 第一种方法 start --------------
-    # fw = open(filename, 'wb')
-    # pickle.dump(inputTree, fw)
-    # fw.close()
-    # # -------------- 第一种方法 end --------------
 
-    # -------------- 第二种方法 start --------------
     with open(filename, 'wb') as fw:
         pickle.dump(inputTree, fw)
 
-    # -------------- 第二种方法 start --------------
 
 def grabTree(filename):
+    #将之前存储的决策树模型使用pickle模块还原出来
     import pickle
     fr = open(filename,'rb')
     return pickle.load(fr)
