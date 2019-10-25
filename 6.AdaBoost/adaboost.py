@@ -87,15 +87,10 @@ def build_stump(data_arr, class_labels, D):
                 # 这里是矩阵乘法
                 weighted_err = D.T * err_arr
                 '''
-                dim            表示 feature列
+                dim             表示 feature列
                 thresh_val      表示树的分界值
-                inequal        表示计算树左右颠倒的错误率的情况
-                weighted_error  表示整体结果的错误率
-                best_class_est    预测的最优结果 （与class_labels对应）
+                inequal         标志
                 '''
-                # print('split: dim {}, thresh {}, thresh inequal: {}, the weighted err is {}'.format(
-                #     i, thresh_val, inequal, weighted_err
-                # ))
                 if weighted_err < min_err:
                     min_err = weighted_err
                     best_class_est = predicted_vals.copy()
@@ -107,7 +102,7 @@ def build_stump(data_arr, class_labels, D):
 
 def ada_boost_train_ds(data_arr, class_labels, num_it=40):
     """
-    训练adaBoost弱分类器
+    依次训练adaBoost弱分类器
     :param data_arr: 特征标签集合
     :param class_labels: 分类标签集合
     :param num_it: 迭代次数
@@ -158,7 +153,7 @@ def ada_classify(data_to_class, classifier_arr):
             classifier_arr[i]['ineq']
         )
         agg_class_est += classifier_arr[i]['alpha'] * class_est
-        print(agg_class_est)
+        #print(agg_class_est)
     return np.sign(agg_class_est)
 
 
@@ -170,6 +165,8 @@ def plot_roc(pred_strengths, class_labels):
     :return:
     """
     import matplotlib.pyplot as plt
+    plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+    plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
     # variable to calculate AUC
     y_sum = 0.0
     # 对正样本的进行求和
@@ -205,9 +202,9 @@ def plot_roc(pred_strengths, class_labels):
         cur = (cur[0] - del_x, cur[1] - del_y)
     # 画对角的虚线线
     ax.plot([0, 1], [0, 1], 'b--')
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
-    plt.title('ROC curve for AdaBoost horse colic detection system')
+    plt.xlabel('假阳率')
+    plt.ylabel('真阳率')
+    plt.title('病马决策系统的ROC曲线')
     # 设置画图的范围区间 (x1, x2, y1, y2)
     ax.axis([0, 1, 0, 1])
     plt.show()
@@ -217,7 +214,7 @@ def plot_roc(pred_strengths, class_labels):
     这些小矩形的宽度是x_step，因此可以先对所有矩形的高度进行累加，最后再乘以x_step得到其总面积。
     所有高度的和(y_sum)随着x轴的每次移动而渐次增加。
     '''
-    print("the Area Under the Curve is: ", y_sum * x_step)
+    print("曲线下面的面积为: \n", y_sum * x_step)
 
 
 def test():
@@ -231,8 +228,8 @@ def test():
     predicting10 = ada_classify(data_arr_test, weak_class_arr)
     err_arr = np.mat(np.ones((m, 1)))
     # 测试：计算总样本数，错误样本数，错误率
-    print(m,
-          err_arr[predicting10 != np.mat(label_arr_test).T].sum(),
+    print(
+          "错误率为",
           err_arr[predicting10 != np.mat(label_arr_test).T].sum() / m
           )
 
