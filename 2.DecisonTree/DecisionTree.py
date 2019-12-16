@@ -14,31 +14,26 @@ def createDataSet():
     return dataSet, labels
 
 def calcShannonEnt(dataSet):
-    """calcShannonEnt(calculate Shannon entropy 计算给定数据集的香农熵)
+    """  计算给定数据集的香农熵)
     Args:
         dataSet 数据集
     Returns:
-        返回 每一组feature下的某个分类下，香农熵的信息期望
+        该数据集所有类别标签包含的信息熵
     """
     # 统计标签出现的次数
     label_count = Counter(data[-1] for data in dataSet)
     # 计算概率
-    probs = [ p[1] / len(dataSet)for p in label_count.items()]
+    probs = [p[1]*1.0/ len(dataSet) for p in label_count.items()] #p[1]是某个类别出现的次数,p[0]是该类别的名称
     # 计算香农熵
     shannonEnt = sum([-p * log(p, 2) for p in probs])
     return shannonEnt
 
-def splitDataSet(dataSet, axis, value):
-    """splitDataSet(通过遍历dataSet数据集，求出index对应的colnum列的值为value的行)
-        就是依据index列进行分类，如果index列的数据等于 value的时候，就要将 index 划分到我们创建的新的数据集中
-    Args:
-        dataSet 数据集                 待划分的数据集
-        index 表示每一行的index列        划分数据集的特征
-        value 表示index列对应的value值   需要返回的特征的值。
-    Returns:
-        index列为value的数据集【该数据集需要排除index列】
+def splitDataSet(dataSet, index, value):
     """
-    retDataSet = [data for data in dataSet for i, v in enumerate(data) if i == axis and v == value]
+    将指定特征列的特征值等于 value 的行除index以外剩下的列作为子数据集。
+
+    """
+    retDataSet = [data[:index] + data[index + 1:] for data in dataSet for i, v in enumerate(data) if i == index and v == value]
     return retDataSet
 
 def chooseBestFeatureToSplit(dataSet):
@@ -46,66 +41,60 @@ def chooseBestFeatureToSplit(dataSet):
     Args:
         dataSet 数据集
     Returns:
-        bestFeature 最优的特征列的索引
+        bestFeature 最优的特征列
     """
-    # 计算初始香农熵
-    base_entropy = calcShannonEnt(dataSet)
-    best_info_gain = 0
-    best_feature = -1
-    # 遍历每一个特征
-    for i in range(len(dataSet[0]) - 1):
-        # 对当前特征进行统计
-        feature_count = Counter([data[i] for data in dataSet])
-        # 计算各列的各value值被分割数据集后的香农熵
-        new_entropy = sum(feature[1] / float(len(dataSet)) * calcShannonEnt(splitDataSet(dataSet, i, feature[0])) \
-                       for feature in feature_count.items())
-        # 更新值
-        info_gain = base_entropy - new_entropy
-        print('第{0} 列的信息增益是:{1:.3f}'.format(i, info_gain))
-        if  info_gain > best_info_gain:
-            best_info_gain = info_gain
-            best_feature = i
-    print("最好的特征列是:",best_feature)
-    return best_feature
+    # 求第一行有多少列的 Feature, 最后一列是label列嘛
+    numFeatures = len(dataSet[0]) - 1
+    # 数据集的原始信息熵
+    baseEntropy = calcShannonEnt(dataSet)
+    # 最优的信息增益值, 和最优的Featurn编号
+    bestInfoGain, bestFeature = 0.0, -1
+    # iterate over all the features
+    for i in range(numFeatures):
+        # 获取对应的feature下的所有数据
+        featList = [example[i] for example in dataSet]
+        # 获取剔重后的集合，使用set对list数据进行去重
+        uniqueVals = set(featList)
+        # 创建一个临时的信息熵
+        newEntropy = 0.0
+        # 遍历当前特征中的所有唯一属性值，对每个唯一属性值划分一次数据集，计算数据集的新熵值，并对所有唯一特征值得到的熵求和。
+        for value in uniqueVals:
+            subDataSet = splitDataSet(dataSet, i, value)
+            # 计算概率
+            prob = len(subDataSet)/float(len(dataSet))
+            # 计算信息熵
+            newEntropy += prob * calcShannonEnt(subDataSet)
+        # 信息增益是熵的减少或者是数据无序度的减少。最后，比较所有特征中的信息增益，返回最好特征划分的索引值。
+        infoGain = baseEntropy - newEntropy
+        print('第{0} 列的信息增益是:{1:.3f}'.format(i, infoGain))
+        if (infoGain > bestInfoGain):
+            bestInfoGain = infoGain
+            bestFeature = i
+    print('最好的特征列是:',bestFeature)
+    return bestFeature
 
 def majorityCnt(classList):
-    """majorityCnt(选择出现次数最多的一个结果)
-        Args:
-            classList label列的集合
-        Returns:
-            bestFeature 最优的特征列
-        """
+    """
+    majorityCnt(选择出现次数最多的一个结果)
+    用于判断当数据集已经处理了所有属性,但类标签依然不唯一这种情况
+    """
     major_label = Counter(classList).most_common(1)[0]
     return major_label
 
 def createTree(dataSet, labels):
-    """
-    Desc:
-        创建决策树
-    Args:
-        dataSet -- 要创建决策树的训练数据集
-        labels -- 训练数据集中特征对应的含义的labels，不是目标变量
-    Returns:
-        myTree -- 创建完成的决策树
-    """
     classList = [example[-1] for example in dataSet]
-    # 如果数据集的最后一列的第一个值出现的次数=整个集合的数量，也就说只有一个类别，就只直接返回结果就行
     # 第一个停止条件：所有的类标签完全相同，则直接返回该类标签。
     if classList.count(classList[0]) == len(classList):
         return classList[0]
-    # 如果数据集只有1列，那么最初出现label次数最多的一类，作为结果
     # 第二个停止条件：使用完了所有特征，仍然不能将数据集划分成仅包含唯一类别的分组。
     if len(dataSet[0]) == 1:
         return majorityCnt(classList)
     # 选择最优的列，得到最优列对应的label的索引
     bestFeat = chooseBestFeatureToSplit(dataSet)
     # 获取label的名称
-    bestFeatLabel = labels[bestFeat]
-    labels.append(bestFeatLabel)
+    bestFeatLabel = labels[bestFeat]  
     # 初始化myTree
     myTree = {bestFeatLabel: {}}
-    # 注：labels列表是可变对象，在PYTHON函数中作为参数时传址引用，能够被全局修改
-    # 所以这行代码导致函数外的同名变量被删除了元素，造成例句无法执行，提示'no surfacing' is not in list]
     del(labels[bestFeat])
     # 取出最优列的所有value值，然后对它的分支做递归建树
     featValues = [example[bestFeat] for example in dataSet]
@@ -129,7 +118,7 @@ def classify(inputTree, featLabels, testVec):
     Returns:
         classLabel -- 分类的结果值，需要映射label才能知道名称
     """
-    # 获取tree的根节点对于的key值,书上这里会报错,必须加list
+    # 获取tree的根节点对应的key值,书上这里会报错,必须加list
     firstStr = list(inputTree.keys())[0]
     # 通过key得到根节点对应的value
     secondDict = inputTree[firstStr]
@@ -139,7 +128,7 @@ def classify(inputTree, featLabels, testVec):
     key = testVec[featIndex]
     valueOfFeat = secondDict[key]
     print('+++', firstStr, 'xxx', secondDict, '---', key, '>>>', valueOfFeat)
-    # 判断分枝是否结束: 判断valueOfFeat是否是dict类型
+    # 判断分枝是否结束: 判断valueOfFeat是否是dict类型,如果是则继续递归向下寻找
     if isinstance(valueOfFeat, dict):
         classLabel = classify(valueOfFeat, featLabels, testVec)
     else:
@@ -161,6 +150,7 @@ def storeTree(inputTree, filename):
     with open(filename, 'wb') as fw:
         pickle.dump(inputTree, fw)
 
+    # print("加后",labels)
 
 def grabTree(filename):
     #将之前存储的决策树模型使用pickle模块还原出来
@@ -170,18 +160,20 @@ def grabTree(filename):
 
 def fishTest():
     import copy
-    # 1.创建数据和结果标签
+    #1.创建数据和结果标签
     myDat,labels = createDataSet()
     myTree = createTree(myDat, copy.deepcopy(labels))
     print("决策树是:",myTree)
     #2.分类树的存取
     storeTree(myTree,'dt.txt')
-    #3.[1, 1]表示要取的分支上的节点位置，对应的结果值
-    print(classify(myTree, labels, [1, 1]))
+    #3.测试决策树分类器,测试数据为(1,1)
+    print("分类的结果是:",classify(myTree, labels, [1, 1]))
     #4.获得树的高度
     print("树的高度是:",get_tree_height(myTree))
     #5.画图可视化展现fishTest
     dtPlot.createPlot(myTree)
+    #6.打印取出的树
+    print("存储后取出的树是:",grabTree('dt.txt'))
 
 def get_tree_height(tree):
     """
@@ -208,17 +200,9 @@ def get_tree_height(tree):
 
     return max_height + 1
 
-# ------项目案例1: 预测隐形眼镜类型---------
+# ------项目案例2: 预测隐形眼镜类型---------
 
 def ContactLensesTest():
-    """
-    Desc:
-        预测隐形眼镜的测试代码
-    Args:
-        none
-    Returns:
-        none
-    """
     # 加载隐形眼镜相关的 文本文件 数据
     fr = open('data/lenses.txt')
     # 解析数据，获得 features 数据
@@ -227,11 +211,13 @@ def ContactLensesTest():
     lensesLabels = ['age', 'prescript', 'astigmatic', 'tearRate']
     # 使用上面的创建决策树的代码，构造预测隐形眼镜的决策树
     lensesTree = createTree(lenses, lensesLabels)
-    print(lensesTree)
+    print("决策树是:",lensesTree)
+    print("树的高度是:",get_tree_height(lensesTree))
     # 画图可视化展现
     dtPlot.createPlot(lensesTree)
 
 if __name__ == "__main__":
-    print("取出的树是:",grabTree('dt.txt'))
+  
     fishTest()
+    print("="*40)
     ContactLensesTest()

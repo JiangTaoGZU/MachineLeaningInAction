@@ -20,7 +20,7 @@ def load_data_set():
         ['stop', 'posting', 'stupid', 'worthless', 'garbage'],
         ['mr', 'licks', 'ate', 'my', 'steak', 'how', 'to', 'stop', 'him'],
         ['quit', 'buying', 'worthless', 'dog', 'food', 'stupid']]
-    class_vec = [0, 1, 0, 1, 0, 1]  # 1 is 侮辱性的文字, 0 is not
+    class_vec = [0, 1, 0, 1, 0, 1]  # 1 is 侮辱性的文档, 0 is not
     return posting_list, class_vec
 
 def create_vocab_list(data_set):
@@ -53,51 +53,58 @@ def set_of_words2vec(vocab_list, input_set):
             pass
     return result
 
-def _train_naive_bayes(train_mat, train_category):
+def _train_naive_bayes(trainMatrix, trainCategory):
     """
-    朴素贝叶斯分类原版
-    :param train_mat:  type is ndarray
-                    总的输入文本，大致是 [[0,1,0,1], [], []]
-    :param train_category: 文件对应的类别分类， [0, 1, 0],
-                            列表的长度应该等于上面那个输入文本的长度
-    :return: 正常文档list p0vec, 侮辱性文档p1vec, 侮辱性文件的出现概率pos_abusive
+    训练数据原版
+    :param trainMatrix: 文件单词矩阵 [[1,0,1,1,1....],[],[]...]
+    :param trainCategory: 文件对应的类别[0,1,1,0....]，列表长度等于单词矩阵数，其中的1代表对应的文件是侮辱性文件，0代表不是侮辱性矩阵
+    :return:
     """
-    train_doc_num = len(train_mat)    # 侮辱性文档的个数
-    words_num = len(train_mat[0])     # 一个文档中的总词数
-    pos_abusive = np.sum(train_category) / train_doc_num    # 代表的就是多少个侮辱性文件，与文件的总数相除就得到了侮辱性文件的出现概率
-    p0num = np.zeros(words_num)
-    p1num = np.zeros(words_num)
-    # 整个数据集单词出现的次数（原来是0，后面改成2了）
-    p0num_all = 0
-    p1num_all = 0
-    for i in range(train_doc_num):
+    # 文件数
+    numTrainDocs = len(trainMatrix)
+    # 词向量的总单词数
+    numWords = len(trainMatrix[0])
+    # 侮辱性文件的出现概率，即trainCategory中所有的1的个数，
+    # 代表的就是多少个侮辱性文件，与文件的总数相除就得到了侮辱性文件的出现概率
+    pAbusive = sum(trainCategory) / float(numTrainDocs)
+    # 构造单词出现次数列表
+    p0Num = np.zeros(numWords) # [0,0,0,.....]
+    p1Num = np.zeros(numWords) # [0,0,0,.....]
+    # 整个数据集单词出现总数
+    p0Denom = 0.0
+    p1Denom = 0.0
+    for i in range(numTrainDocs):
         # 遍历所有的文件，如果是侮辱性文件，就计算此侮辱性文件中出现的侮辱性单词的个数
-        if train_category[i] == 1:
-            p1num += train_mat[i]
-            p1num_all += np.sum(train_mat[i])  # 整个正常文档数据集单词出现的次数
+        if trainCategory[i] == 1:
+            p1Num += trainMatrix[i] #[0,1,1,....]->[0,1,1,...]
+            p1Denom += sum(trainMatrix[i])
+
         else:
-            p0num += train_mat[i]
-            p0num_all += np.sum(train_mat[i])  # 整个侮辱性数据集单词出现的次数
-    # 后面需要改成改成取 log 函数
-    p1vec = p1num / p1num_all
-    p0vec = p0num / p0num_all
-    return p0vec, p1vec, pos_abusive
+            # 如果不是侮辱性文件，则计算非侮辱性文件中出现的侮辱性单词的个数
+            p0Num += trainMatrix[i]
+            p0Denom += sum(trainMatrix[i])
+    # 类别1，即侮辱性文档的[P(F1|C1),P(F2|C1),P(F3|C1),P(F4|C1),P(F5|C1)....]列表
+    # 即 在1类别下，每个单词出现次数的占比
+    p1Vect = p1Num / p1Denom  # [1,2,3,5]/90->[1/90,...]
+    # 类别0，即正常文档的[P(F1|C0),P(F2|C0),P(F3|C0),P(F4|C0),P(F5|C0)....]列表
+    # 即 在0类别下，每个单词出现次数的占比
+    p0Vect = p0Num / p0Denom  
+    return p0Vect, p1Vect, pAbusive
 
 def train_naive_bayes(train_mat, train_category):
     """
     朴素贝叶斯分类修正版，　注意和原来的对比，为什么这么做可以查看书
-    :param train_mat:  type is ndarray
-                    总的输入文本，大致是 [[0,1,0,1], [], []]
+    :param train_mat:  
+                    总的输入文本，大致是 [[0,1,0,1...], [], []]
     :param train_category: 文件对应的类别分类， [0, 1, 0],
                             列表的长度应该等于上面那个输入文本的长度
-    :return:正常文档list p0vec, 侮辱性文档p1vec, 侮辱性文件的出现概率pos_abusive
+    :return:正常文档p0vec, 侮辱性文档p1vec, 侮辱性文件的出现概率pos_abusive
     """
-    train_doc_num = len(train_mat)
-    words_num = len(train_mat[0])
+    train_doc_num = len(train_mat) #文件数
+    words_num = len(train_mat[1])  #词向量的特征数
+    # 侮辱性文件的出现概率
     pos_abusive = np.sum(train_category) / train_doc_num
-    # 原版，变成ones是修改版，这是为了防止数字过小溢出
-    # p0num = np.zeros(words_num)
-    # p1num = np.zeros(words_num)
+    # 变成ones是修改版，这是为了防止数字过小溢出
     p0num = np.ones(words_num)
     p1num = np.ones(words_num)
     # 整个数据集单词出现的次数（原来是0，后面改成2了）
@@ -105,15 +112,15 @@ def train_naive_bayes(train_mat, train_category):
     p1num_all = 2.0
 
     for i in range(train_doc_num):
-        # 遍历所有的文件，如果是侮辱性文档，就计算此侮辱性文件中出现的侮辱性单词的个数
+        # 遍历所有的文件，计算在侮辱或非侮辱类下，每个单词出现的次数占该类文档总词数的比
         if train_category[i] == 1:
-            p1num += train_mat[i]
+            p1num += train_mat[i]  #[1,1,1,....]->[2,2,1,...]
             p1num_all += np.sum(train_mat[i])
         else:
             p0num += train_mat[i]
             p0num_all += np.sum(train_mat[i])
     # 后面改成取 log 函数
-    p1vec = np.log(p1num / p1num_all)
+    p1vec = np.log(p1num / p1num_all)   #取对数防止下溢出
     p0vec = np.log(p0num / p0num_all)
     return p0vec, p1vec, pos_abusive
 
@@ -126,7 +133,7 @@ def classify_naive_bayes(vec2classify, p0vec, p1vec, p_class1):
     :param vec2classify: 待测数据[0,1,1,1,1...]，即要分类的向量
     :param p0vec: 类别0，即正常文档的[log(P(F1|C0)),log(P(F2|C0)),log(P(F3|C0)),log(P(F4|C0)),log(P(F5|C0))....]列表
     :param p1vec: 类别1，即侮辱性文档的[log(P(F1|C1)),log(P(F2|C1)),log(P(F3|C1)),log(P(F4|C1)),log(P(F5|C1))....]列表
-    :param p_class1: 类别1，侮辱性文件的出现概率
+    :param p_class1: 类别1，侮辱性文件的出现概率 
     :return: 类别1 or 0
     """
     # 计算公式  log(P(F1|C))+log(P(F2|C))+....+log(P(Fn|C))+log(P(C))
@@ -154,12 +161,12 @@ def testing_naive_bayes():
     for post_in in list_post:
         train_mat.append(
             # 返回m*len(vocab_list)的矩阵， 记录的都是0，1信息
-            # 其实就是那个东西的句子向量（就是data_set里面每一行,也不算句子吧)
             bag_words2vec(vocab_list, post_in)
-
         )
-    # 4. 训练数据
+    # 4. 训练数据,得到词向量各词特征的概率
+    #p0v, p1v, p_abusive = train_naive_bayes(np.array(train_mat), np.array(list_classes))=
     p0v, p1v, p_abusive = train_naive_bayes(np.array(train_mat), np.array(list_classes))
+
     # 5. 测试数据
     test_one = ['love', 'my', 'dalmation']
     test_one_doc = np.array(bag_words2vec(vocab_list, test_one))
@@ -235,24 +242,23 @@ def spam_test():
     vocab_list = create_vocab_list(doc_list)
 
     import random
-    # 生成随机取10个数, 为了避免警告将每个数都转换为整型
+    # 生成随机取10个数用来测试
     test_set = [int(num) for num in random.sample(range(50), 10)]
     # 并在原来的training_set中去掉这10个数
     training_set = list(set(range(50)) - set(test_set))
     training_mat = []
     training_class = []
     for doc_index in training_set:
-        training_mat.append(set_of_words2vec(vocab_list, doc_list[doc_index]))
+        training_mat.append(bag_words2vec(vocab_list, doc_list[doc_index]))
         training_class.append(class_list[doc_index])
     p0v, p1v, p_spam = train_naive_bayes(
         np.array(training_mat),
         np.array(training_class)
     )
-
     # 开始测试
     error_count = 0
     for doc_index in test_set:
-        word_vec = set_of_words2vec(vocab_list, doc_list[doc_index])
+        word_vec = bag_words2vec(vocab_list, doc_list[doc_index])
         if classify_naive_bayes(
                 np.array(word_vec),
                 p0v,
@@ -260,12 +266,15 @@ def spam_test():
                 p_spam
         ) != class_list[doc_index]:
             error_count += 1
+            print( '错误的文档是第'+ repr(doc_index)+'篇:' ,doc_list[doc_index])
     print("错误的个数是:",error_count)
     print('垃圾邮件分类的错误率是{}'.format(
         error_count / len(test_set)
     ))
 
 
+
 if __name__ == "__main__":
     testing_naive_bayes()
+    print("="*40)
     spam_test()

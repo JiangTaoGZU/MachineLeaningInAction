@@ -1,3 +1,4 @@
+#coding:utf-8
 import numpy as np
 
 def load_sim_data():
@@ -13,26 +14,7 @@ def load_sim_data():
                           [2.0, 1.0]])
     class_labels = [1.0, 1.0, -1.0, -1.0, 1.0]
     return data_mat, class_labels
-
-def load_data_set(file_name):
-    """
-    加载马的疝气病的数据
-    :param file_name: 文件名
-    :return: 必须要是np.array或者np.matrix不然后面没有，shape
-    """
-    num_feat = len(open(file_name).readline().split('\t'))
-    data_arr = []
-    label_arr = []
-    fr = open(file_name)
-    for line in fr.readlines():
-        line_arr = []
-        cur_line = line.strip().split('\t')
-        for i in range(num_feat - 1):
-            line_arr.append(float(cur_line[i]))
-        data_arr.append(line_arr)
-        label_arr.append(float(cur_line[-1]))
-    return np.matrix(data_arr), label_arr
-
+    
 def stump_classify(data_mat, dimen, thresh_val, thresh_ineq):
     """
     (将数据集，按照feature列的value进行 二分法切分比较来赋值分类)
@@ -43,17 +25,11 @@ def stump_classify(data_mat, dimen, thresh_val, thresh_ineq):
     :return: np.array
     """
     ret_array = np.ones((np.shape(data_mat)[0], 1))
-    # data_mat[:, dimen] 表示数据集中第dimen列的所有值
-    # thresh_ineq == 'lt'表示less than，gt表示great than
-    # （这里其实我建议理解为转换左右边，就是一棵树的左右孩子，可能有点问题。。。待考证）
     if thresh_ineq == 'lt':
         ret_array[data_mat[:, dimen] <= thresh_val] = -1.0
     else:
         ret_array[data_mat[:, dimen] > thresh_val] = -1.0
     return ret_array
-
-
-
 
 def build_stump(data_arr, class_labels, D):
     """
@@ -67,12 +43,10 @@ def build_stump(data_arr, class_labels, D):
     """
     data_mat = np.mat(data_arr)
     label_mat = np.mat(class_labels).T
-
     m, n = np.shape(data_mat)
     num_steps = 10.0
     best_stump = {}
     best_class_est = np.mat(np.zeros((m, 1)))
-    # 无穷大
     min_err = np.inf
     for i in range(n):
         range_min = data_mat[:, i].min()
@@ -84,20 +58,16 @@ def build_stump(data_arr, class_labels, D):
                 predicted_vals = stump_classify(data_mat, i, thresh_val, inequal)
                 err_arr = np.mat(np.ones((m, 1)))
                 err_arr[predicted_vals == label_mat] = 0
-                # 这里是矩阵乘法
                 weighted_err = D.T * err_arr
-                '''
-                dim             表示 feature列
-                thresh_val      表示树的分界值
-                inequal         标志
-                '''
+                print("split:第%d列,阈值:%.2f,标志:%s,错误率:%.3f"%(i,thresh_val,inequal,weighted_err))
                 if weighted_err < min_err:
                     min_err = weighted_err
                     best_class_est = predicted_vals.copy()
                     best_stump['dim'] = i
                     best_stump['thresh'] = thresh_val
                     best_stump['ineq'] = inequal
-    # best_stump 表示分类器的结果，在第几个列上，用大于／小于比较，阈值是多少 (单个弱分类器)
+    # best_stump 表示分类器的结果，在第几列上，用大于／小于比较，阈值是多少 (单个弱分类器)
+    print("最优分类器为%s\n最小错误率为:%.3f\n最优分类结果为\n%s"%(best_stump, min_err, best_class_est))
     return best_stump, min_err, best_class_est
 
 def ada_boost_train_ds(data_arr, class_labels, num_it=40):
@@ -156,7 +126,6 @@ def ada_classify(data_to_class, classifier_arr):
         #print(agg_class_est)
     return np.sign(agg_class_est)
 
-
 def plot_roc(pred_strengths, class_labels):
     """
     (打印ROC曲线，并计算AUC的面积大小)
@@ -164,9 +133,9 @@ def plot_roc(pred_strengths, class_labels):
     :param class_labels: 原始数据的分类结果集
     :return:
     """
-    import matplotlib.pyplot as plt
-    plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
-    plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+    from matplotlib import pyplot as plt
+    plt.rcParams['font.sans-serif'] =  ['Microsoft YaHei']
+    plt.rcParams['axes.unicode_minus'] = False 
     # variable to calculate AUC
     y_sum = 0.0
     # 对正样本的进行求和
@@ -216,8 +185,35 @@ def plot_roc(pred_strengths, class_labels):
     '''
     print("曲线下面的面积为: \n", y_sum * x_step)
 
-
+# -------Adaboost简单测试------
 def test():
+    datArr,lableArr = load_sim_data()
+    classifierArr,agg_class_est = ada_boost_train_ds(datArr,lableArr,30)
+    data = [[0,0],[5,5]]
+    print("data根据训练好的分类器输出的结果为:\n",ada_classify(data,classifierArr))
+    
+
+# -------从疝气病症预测病马的死亡率------
+def load_data_set(file_name):
+    """
+    加载马的疝气病的数据
+    :param file_name: 文件名
+    :return: 必须要是np.array或者np.matrix不然后面没有，shape
+    """
+    num_feat = len(open(file_name).readline().split('\t'))
+    data_arr = []
+    label_arr = []
+    fr = open(file_name)
+    for line in fr.readlines():
+        line_arr = []
+        cur_line = line.strip().split('\t')
+        for i in range(num_feat - 1):
+            line_arr.append(float(cur_line[i]))
+        data_arr.append(line_arr)
+        label_arr.append(float(cur_line[-1]))
+    return np.matrix(data_arr), label_arr
+    
+def colictest():
     data_mat, class_labels = load_data_set('data/7.AdaBoost/horseColicTraining2.txt')
     weak_class_arr, agg_class_est = ada_boost_train_ds(data_mat, class_labels, 40)
     print("各弱分类器依次为:\n", weak_class_arr)
@@ -235,4 +231,7 @@ def test():
 
 
 if __name__ == '__main__':
+
     test()
+    print("="*40)
+    colictest()

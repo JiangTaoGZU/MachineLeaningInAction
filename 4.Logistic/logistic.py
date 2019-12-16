@@ -23,13 +23,11 @@ def load_data_set():
 def sigmoid(x):
     return 1.0 / (1 + np.exp(-x))
 
-
 def grad_ascent(data_arr, class_labels):
     """
     梯度上升法，其实就是因为使用了极大似然估计，这个大家有必要去看推导，只看代码感觉不太够
     :param data_arr: 传入的就是一个普通的数组，当然你传入一个二维的ndarray也行
-    :param class_labels: class_labels 是类别标签，它是一个 1*100 的行向量。
-                    为了便于矩阵计算，需要将该行向量转换为列向量，做法是将原向量转置，再将它赋值给label_mat
+    :param class_labels: class_labels 是类别标签，它是一个 1*100 的行向量,为了便于矩阵计算，需要将该行向量转换为列向量，做法是将原向量转置，再将它赋值给label_mat
     :return: 
     """
     # 注意一下，我把原来 data_mat_in 改成data_arr,因为传进来的是一个数组，用这个比较不容易搞混
@@ -39,7 +37,6 @@ def grad_ascent(data_arr, class_labels):
     label_mat = np.mat(class_labels).transpose()
     # m->数据量，n->特征数
     m, n = np.shape(data_mat)
-    print(m,n)
     # 学习率，learning rate
     alpha = 0.001
     # 最大迭代次数，假装迭代这么多次就能收敛2333
@@ -156,15 +153,15 @@ def test():
     """
     data_arr, class_labels = load_data_set()
     # 注意，这里的grad_ascent返回的是一个 matrix, 所以要使用getA方法变成ndarray类型
-    #weights = grad_ascent(data_arr, class_labels).getA()
-    weights = stoc_grad_ascent0(np.array(data_arr), class_labels)
+    weights = grad_ascent(data_arr, class_labels).getA()
+    #weights = stoc_grad_ascent0(np.array(data_arr), class_labels)
     #weights = stoc_grad_ascent1(np.array(data_arr), class_labels)
     plot_best_fit(weights)
 
 # -------从疝气病症预测病马的死亡率------
 
 def classify_vector(in_x, weights):
-    """
+    """                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
     最终的分类函数，根据回归系数和特征向量来计算 Sigmoid 的值，大于0.5函数返回1，否则返回0
     :param in_x: 特征向量，features
     :param weights: 根据梯度下降/随机梯度下降 计算得到的回归系数
@@ -178,6 +175,7 @@ def classify_vector(in_x, weights):
 
 
 def colic_test():
+
     """
     打开测试集和训练集，并对数据进行格式化处理,其实最主要的的部分，比如缺失值的补充（真的需要学会的），人家已经做了
     :return:
@@ -189,7 +187,7 @@ def colic_test():
     # 解析训练数据集中的数据特征和Labels
     # trainingSet 中存储训练数据集的特征，trainingLabels 存储训练数据集的样本对应的分类标签
     for line in f_train.readlines():
-        curr_line = line.strip().split('\t')
+        curr_line = line.strip().split('\t') 
         if len(curr_line) == 1:
             continue    # 这里如果就一个空的元素，则跳过本次循环
         line_arr = [float(curr_line[i]) for i in range(21)]
@@ -197,7 +195,6 @@ def colic_test():
         training_labels.append(float(curr_line[21]))
     # 使用 改进后的 随机梯度下降算法 求得在此数据集上的最佳回归系数 trainWeights
     train_weights = stoc_grad_ascent1(np.array(training_set), training_labels, 500)
-
     error_count = 0
     num_test_vec = 0.0
     # 读取 测试数据集 进行测试，计算分类错误的样本条数和最终的错误率
@@ -210,7 +207,7 @@ def colic_test():
         if int(classify_vector(np.array(line_arr), train_weights)) != int(curr_line[21]):
             error_count += 1
     error_rate = error_count / num_test_vec
-    print('错误率是 {}'.format(error_rate))
+    print('病马案例错误率是 {}'.format(error_rate))
     return error_rate
 
 
@@ -219,7 +216,8 @@ def multi_test():
     调用 colicTest() 10次并求结果的平均值
     :return: nothing
     """
-    num_tests = 10
+
+    num_tests = 3
     error_sum = 0
     for k in range(num_tests):
         error_sum += colic_test()
@@ -229,5 +227,6 @@ def multi_test():
 if __name__ == '__main__':
     # 请依次运行下面三个函数做代码测试
     test()
+    print('='*40)
     colic_test()
     multi_test()

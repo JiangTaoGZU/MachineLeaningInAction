@@ -31,7 +31,7 @@ def classify0(inX, dataSet, labels, k):
     """
     # 1. 距离计算
     dataSetSize = dataSet.shape[0]
-    diffMat = tile(inX, (dataSetSize, 1)) - dataSet      # tile生成和训练样本对应的矩阵，并与训练样本求差
+    diffMat = tile(inX, (dataSetSize, 1)) - dataSet      # tile生成和训练样本对应的矩阵，并与训练样本求差,1带表重复次数
     sqDiffMat = diffMat ** 2
     sqDistances = sqDiffMat.sum(axis=1)      # 将矩阵的每一行相加
     distances = sqDistances ** 0.5
@@ -49,10 +49,9 @@ def test1():
     第一个例子演示
     """
     group, labels = createDataSet()
-    print("电影数据集为:",str(group))
+    print("电影数据集为:\n",str(group))
     print("电影标签为:",str(labels))
     print("预测电影类型为:",classify0([0.1, 0.1], group, labels, 3))
-
 
 def file2matrix(filename):
     """
@@ -178,5 +177,7 @@ def handwritingClassTest():
 
 if __name__ == '__main__':
     test1()
+    print("="*40)
     datingClassTest()
+    print("="*40)
     handwritingClassTest()
