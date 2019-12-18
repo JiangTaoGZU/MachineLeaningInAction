@@ -230,7 +230,7 @@ def stageWise(xArr, yArr, eps=0.01, numIt=100):
 # 预测乐高玩具套装的价格 可运行版本，我们把乐高数据存储到了我们的 input 文件夹下，使用 beautifulSoup 爬去一下内容
 # 前提：安装 BeautifulSoup 第三方爬虫库的步骤: pip install beautifulsoup4
 
-def scrapePage(retX, retY, inFile, yr, numPce, origPrc):
+def scrapePage(retX, retY, inFile, yr, numPce, origPrc): 
 
     '''
     从页面读取数据，生成retX和retY列表
@@ -330,7 +330,7 @@ def crossValidation(xArr,yArr,numVal=10):
 
 
 #----------------标准回归函数测试-----------------
-def regression1():
+def regression1(): 
     xArr, yArr = loadDataSet("data/8.Regression/data.txt")
     xMat = mat(xArr)
     yMat = mat(yArr)
@@ -377,18 +377,18 @@ def abaloneTest():
     abX, abY = loadDataSet("data/8.Regression/abalone.txt")
     # 使用不同的核进行预测
     oldyHat01 = lwlrTest(abX[0:99], abX[0:99], abY[0:99], 0.1)
-    oldyHat1 = lwlrTest(abX[0:99], abX[0:99], abY[0:99], 1)
+    oldyHat1 = lwlrTest(abX[0:99], abX[0:99], abY[0:99], 2)
     oldyHat10 = lwlrTest(abX[0:99], abX[0:99], abY[0:99], 10)
     # 打印出不同的核预测值与训练数据集上的真实值之间的误差大小
     print("老数据集下k为0.1 的错误值是:", rssError(abY[0:99], oldyHat01.T))
-    print("老数据集下k为1 的错误值是:", rssError(abY[0:99], oldyHat1.T))
+    print("老数据集下k为2 的错误值是:", rssError(abY[0:99], oldyHat1.T))
     print("老数据集下k为10 的错误值是::", rssError(abY[0:99], oldyHat10.T))
     print("-"*40)
     # 打印出 不同的核预测值 与 新数据集（测试数据集）上的真实值之间的误差大小
     newyHat01 = lwlrTest(abX[100:199], abX[0:99], abY[0:99], 0.1)
     print("新数据集下k为0.1的错误值是", rssError(abY[0:99], newyHat01.T))
-    newyHat1 = lwlrTest(abX[100:199], abX[0:99], abY[0:99], 1)
-    print("新数据集下k为1 的错误值是:", rssError(abY[0:99], newyHat1.T))
+    newyHat1 = lwlrTest(abX[100:199], abX[0:99], abY[0:99], 2)
+    print("新数据集下k为2 的错误值是:", rssError(abY[0:99], newyHat1.T))
     newyHat10 = lwlrTest(abX[100:199], abX[0:99], abY[0:99], 10)
     print("新数据集下k为10 的错误值是:", rssError(abY[0:99], newyHat10.T))
     # 使用简单的 线性回归 进行预测，与上面的计算进行比较
